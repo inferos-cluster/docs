@@ -21,28 +21,28 @@ A cluster is composed of **ports** and **modules**:
  ┌──────────┼──────────────────────────────────────┐
  │          │              CLUSTER (CLST)          │
  │          ▼                                      │
- │  ┌────────────────┐                             │
- │  │ MDL-ST-CITADEL │ ◄─────────────────────┐     │
- │  └───────┬────────┘                       │     │
- │          │                                │     │
- │          ▼                                │     │
- │  ┌───────────────┐      ┌──────────────┐  │     │
- │  │  MDL-ST-?     │◄────►│  MDL-OP-?    │  │     │
- │  │  (stations)   │      │  (operators) │  │     │
- │  └───────┬───────┘      └──────────────┘  │     │
- │          │                                │     │
- │          │         ┌──────────────────┐   │     │
- │          └────────►│   MDL-ST-?  ...  │───┘     │
- │                    └──────────────────┘         │
+ │  ┌─────────────────────┐                        │
+ │  │ CLST-MDL-ST-CITADEL │ ◄──────────────────┐   │
+ │  └─────────┬───────────┘                    │   │
+ │            │                                │   │
+ │            ▼                                │   │
+ │  ┌──────────────────┐   ┌─────────────────┐ │   │
+ │  │  CLST-MDL-ST-?   │◄─►│  CLST-MDL-OP-?  │ │   │
+ │  │  (stations)      │   │  (operators)    │ │   │
+ │  └───────┬──────────┘   └─────────────────┘ │   │
+ │          │                                  │   │
+ │          │     ┌──────────────────────┐     │   │
+ │          └────►│  CLST-MDL-ST-?  ...  │─────┘   │
+ │                └──────────────────────┘         │
  │                            │                    │
  │                            ▼                    │
- │                   ╔════════════════╗            │
- │                   ║   CLST-RELAY   ║            │
- │                   ║ ┌────────────┐ ║            │
- │                   ║ │  MDL-RN-?  │ ║            │
- │                   ║ │ (runners)  │ ║            │
- │                   ║ └─────┬──────┘ ║            │
- │                   ╚═══════╪════════╝            │
+ │                   ╔═════════════════════╗       │
+ │                   ║   CLST-RELAY        ║       │
+ │                   ║ ┌─────────────────┐ ║       │
+ │                   ║ │  CLST-MDL-RN-?  │ ║       │
+ │                   ║ │  (runners)      │ ║       │
+ │                   ║ └─────┬───────────┘ ║       │
+ │                   ╚═══════╪═════════════╝       │
  └───────────────────────────┼─────────────────────┘
                              │
                              ▼
@@ -57,14 +57,14 @@ A cluster is composed of **ports** and **modules**:
 
 Ports define the cluster's perimeter. There are exactly two types:
 
-### CLST-GATE — The User Entry Point
+### CLST-GATE - The User Entry Point
 
 The Gate is the **only** way a user can interact with the cluster. It accepts incoming connections and presents the cluster's services, creating the illusion that the user is operating from _inside_ the cluster rather than connecting to it from the outside.
 
 - The Gate makes obfuscated requests to the responsible Station.
 - No module other than the Gate is directly reachable by users.
 
-### CLST-RELAY — The External Boundary
+### CLST-RELAY - The External Boundary
 
 The Relay is the cluster's outward-facing boundary. It is the **only** point where the cluster touches the public internet or other clusters.
 
@@ -77,21 +77,21 @@ The Relay is the cluster's outward-facing boundary. It is the **only** point whe
 
 Modules are the building blocks of a cluster. Each module has a type prefix that defines its role and constraints.
 
-### MDL-ST-? — Station
+### CLST-MDL-ST-? - Station
 
 Stations are **large, stationary** modules that handle high volumes of data or traffic. They are the backbone of a cluster's internal processing.
 
 - Heavy, persistent processes.
 - Handle storage, routing, or aggregation of data within the cluster.
 
-### MDL-OP-? — Operator
+### CLST-MDL-OP-? - Operator
 
 Operators are **dynamic, task-specific** modules that exist to make Stations work. They are the cluster's workforce.
 
 - Lightweight and purpose-built.
 - Operate entirely within the cluster's internal boundary.
 
-### MDL-RN-? — Runner
+### CLST-MDL-RN-? - Runner
 
 Runners are **isolated, externally-facing** modules that act on behalf of the cluster but have **zero authority** inside it. They are the cluster's hands in the outside world.
 
@@ -108,7 +108,7 @@ Runners are **isolated, externally-facing** modules that act on behalf of the cl
 ### User Request (Inbound)
 
 ```
-User <--> CLST-GATE <--> MDL-ST-CITADEL <--> (processing)
+User <--> CLST-GATE <--> CLST-MDL-ST-CITADEL <--> (processing)
 ```
 
 1. User connects to the cluster through the **Gate**.
@@ -119,7 +119,7 @@ User <--> CLST-GATE <--> MDL-ST-CITADEL <--> (processing)
 ### External Action (Outbound)
 
 ```
-MDL-ST-? --> CLST-RELAY --> MDL-RN-? --> Internet / Other CLST-RELAY
+CLST-MDL-ST-? --> CLST-RELAY --> CLST-MDL-RN-? --> Internet / Other CLST-RELAY
 ```
 
 1. A Station issues an order that reaches a **Runner** inside the Relay.
@@ -130,7 +130,7 @@ MDL-ST-? --> CLST-RELAY --> MDL-RN-? --> Internet / Other CLST-RELAY
 
 ## Design Principles
 
-1. **Isolation by default** — No module has more access than its role requires. Runners cannot touch internals; users cannot bypass the Gate.
-2. **No third-party dependence** — The cluster itself provides the anonymity and security layer; no external VPN or proxy is needed.
-3. **Modular independence** — Each module is a self-contained unit. Modules can be developed, tested, and deployed independently.
-4. **Boundary enforcement** — Only two points (Gate, Relay) bridge the cluster to the outside world. Everything else is internal.
+1. **Isolation by default** - No module has more access than its role requires. Runners cannot touch internals; users cannot bypass the Gate.
+2. **No third-party dependence** - The cluster itself provides the anonymity and security layer; no external VPN or proxy is needed.
+3. **Modular independence** - Each module is a self-contained unit. Modules can be developed, tested, and deployed independently.
+4. **Boundary enforcement** - Only two points (Gate, Relay) bridge the cluster to the outside world. Everything else is internal.
